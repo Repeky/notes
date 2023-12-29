@@ -1,64 +1,64 @@
-notes = list()
+import json
+import autho
 
-def add_notes():
-    note = input("\nВведите заметку: ")
-    notes.append(note)
+NOTES_FILE = "notes.json"
 
-
-def look_notes():
-    if not notes:
-        print("\nПока что здесь заметок\n")
-    else:
-        for i, task in enumerate(notes, start=1):
-            print(f"\n{i}) {task}")
-        print()
-
-def delete_notes():
-    look_notes()
+def load_notes():
     try:
-        usr_option = int(input("\nКакую заметку вы хотите удалить: ")) - 1
-        if 0 <= usr_option < len(notes):
-            del notes[usr_option]
-            print("Заметка успешно удалена!")
-        else:
-            print("Такого индекса нет")
-    except ValueError:
-        print("Пожалуйста, введите число.")
+        with open(NOTES_FILE, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return {}
 
+def save_notes(notes):
+    with open(NOTES_FILE, 'w') as file:
+        json.dump(notes, file)
 
-def main_info():
-    flag = True
-    while flag:
-        print("\n1) Добавить заметку\n"
-              "2) Посмотреть заметку\n"
-              "3) Удалить заметку\n"
-              "4) Выход\n")
-        usr_choice = input("\nВыберите цифру из меню: ")
-        if usr_choice == "1":
-            add_notes()
-        elif usr_choice == "2":
-            look_notes()
-        elif usr_choice == "3":
-            delete_notes()
-        elif usr_choice == "4":
-            flag = False
+def add_note(notes, username):
+    note = input("Введите заметку: ")
+    notes.setdefault(username, []).append(note)
+    save_notes(notes)
+    print("Заметка добавлена.")
 
-            print("Оцените пожалуйста наше приложение!\n"
-                  "0 - это хорошо\n"
-                  "1 - это плохо\n")
-            grade = input("Ввод: ")
-            if grade == "0":
-                print("Спасибо. Мы очень рады!")
-            elif grade == "1":
-                print("Очень жаль(")
-            else:
-                print("Введите 0 или 1!")
-                flag = False
-            print("Спасибо что пользуетесь нашим приложением!")
+def look_notes(notes, username):
+    user_notes = notes.get(username, [])
+    if user_notes:
+        for i, note in enumerate(user_notes, start=1):
+            print(f"{i}) {note}")
+    else:
+        print("У вас пока нет заметок.")
+
+def main_menu():
+    users = autho.load_users()
+    notes = load_notes()
+
+    while True:
+        print("\n1) Регистрация\n2) Вход\n3) Выход")
+        choice = input("Выберите действие: ")
+        if choice == "1":
+            username = autho.register_user(users)
+        elif choice == "2":
+            username = autho.login_user(users)
+        elif choice == "3":
+            break
         else:
             print("Введите корректно!\n")
 
+        if username:
+            while True:
+                print(f"\nПривет, {username}!\n"
+                      "1) Добавить заметку\n"
+                      "2) Посмотреть заметки\n"
+                      "3) Выход\n")
+                user_choice = input("Выберите действие: ")
+                if user_choice == "1":
+                    add_note(notes, username)
+                elif user_choice == "2":
+                    look_notes(notes, username)
+                elif user_choice == "3":
+                    break
+                else:
+                    print("Введите корректно!\n")
 
 if __name__ == "__main__":
-    main_info()
-
+    main_menu()
