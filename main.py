@@ -1,7 +1,8 @@
 import sys
 import json
-from PyQt6.QtWidgets import QApplication, QMainWindow, QTextEdit, QVBoxLayout, QPushButton, QWidget, QMessageBox, QDialog, QListWidget
-from autho import AuthWindow
+from PyQt6.QtWidgets import QApplication, QMainWindow, QTextEdit, QVBoxLayout, QPushButton, QWidget, QMessageBox, \
+    QDialog, QListWidget
+from autho import AuthWindow, encrypt_data, decrypt_data, load_key
 
 NOTES_FILE = "notes.json"
 
@@ -13,23 +14,22 @@ class NotesApp(QMainWindow):
         self.auth_app = auth_app
         self.notes = self.load_notes()  # Загрузка заметок из файла
         self.initUI()
+        self.update_notes_list()
 
     def load_notes(self):
         try:
-            with open(NOTES_FILE, 'r') as file:
-                return json.load(file).get(self.username, [])
+            with open(NOTES_FILE, 'rb') as file:
+                encrypted_data = file.read()
+            decrypted_data = decrypt_data(encrypted_data)
+            return json.loads(decrypted_data)
         except FileNotFoundError:
             return []
 
     def save_notes(self):
-        try:
-            with open(NOTES_FILE, 'r') as file:
-                all_notes = json.load(file)
-        except FileNotFoundError:
-            all_notes = {}
-        all_notes[self.username] = self.notes
-        with open(NOTES_FILE, 'w') as file:
-            json.dump(all_notes, file)
+        data = json.dumps(self.notes)
+        encrypted_data = encrypt_data(data)
+        with open(NOTES_FILE, 'wb') as file:
+            file.write(encrypted_data)
 
     def initUI(self):
         self.setWindowTitle("Заметки - " + self.username)
@@ -93,6 +93,7 @@ class NotesApp(QMainWindow):
     def exit_app(self):
         self.close()
 
+
 def main():
     app = QApplication(sys.argv)
 
@@ -104,6 +105,7 @@ def main():
         sys.exit()
 
     sys.exit(app.exec())
+
 
 if __name__ == "__main__":
     main()

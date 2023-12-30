@@ -1,19 +1,54 @@
 import json
 from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLabel,
                              QLineEdit, QPushButton, QMessageBox, QDialog)
+from cryptography.fernet import Fernet
+import os
 
 USERS_FILE = "users.json"
+KEY_FILE = "secret.key"
+
+
+def load_key():
+    if not os.path.exists(KEY_FILE):
+        key = Fernet.generate_key()
+        with open(KEY_FILE, "wb") as key_file:
+            key_file.write(key)
+    else:
+        with open(KEY_FILE, "rb") as key_file:
+            key = key_file.read()
+    return key
+
+
+def encrypt_data(data):
+    key = load_key()
+    fernet = Fernet(key)
+    encrypted_data = fernet.encrypt(data.encode())
+    return encrypted_data
+
+
+def decrypt_data(encrypted_data):
+    key = load_key()
+    fernet = Fernet(key)
+    decrypted_data = fernet.decrypt(encrypted_data)
+    return decrypted_data.decode()
+
 
 def load_users():
     try:
-        with open(USERS_FILE, 'r') as file:
-            return json.load(file)
+        with open(USERS_FILE, 'rb') as file:
+            encrypted_data = file.read()
+        decrypted_data = decrypt_data(encrypted_data)
+        return json.loads(decrypted_data)
     except FileNotFoundError:
         return {}
 
+
 def save_users(users):
-    with open(USERS_FILE, 'w') as file:
-        json.dump(users, file)
+    data = json.dumps(users)
+    encrypted_data = encrypt_data(data)
+    with open(USERS_FILE, 'wb') as file:
+        file.write(encrypted_data)
+
 
 class AuthWindow(QDialog):
     def __init__(self):
