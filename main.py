@@ -2,11 +2,15 @@ import sys
 import json
 from PyQt6.QtWidgets import QApplication, QMainWindow, QTextEdit, QVBoxLayout, QPushButton, QWidget, QMessageBox, \
     QDialog, QListWidget
+from PyQt6.QtGui import QPixmap, QIcon
+from PyQt6.QtCore import QByteArray
+import base64
 from autho import AuthWindow, encrypt_data, decrypt_data, load_key
+import icon
 
 NOTES_FILE = "notes.json"
 
-
+# ico и для регестрации new дизайн
 class NotesApp(QMainWindow):
     def __init__(self, username, auth_app):
         super().__init__()
@@ -35,6 +39,11 @@ class NotesApp(QMainWindow):
         self.setWindowTitle("Заметки - " + self.username)
         self.setGeometry(300, 300, 600, 400)
 
+        encoded_icon = icon.ico
+        pixmap = QPixmap()
+        pixmap.loadFromData(QByteArray.fromBase64(encoded_icon.encode()))
+        self.setWindowIcon(QIcon(pixmap))
+
         layout = QVBoxLayout()
         central_widget = QWidget()
         central_widget.setLayout(layout)
@@ -45,6 +54,7 @@ class NotesApp(QMainWindow):
 
         self.text_edit = QTextEdit(self)
         self.text_edit.setPlaceholderText("Введите заметку здесь...")  # Установка подсказки
+        self.text_edit.setStyleSheet("QTextEdit { background-color: #f0f0f0; border: 1px solid #ddd; border-radius: 5px; padding: 5px; }")
         layout.addWidget(self.text_edit)
 
         save_button = QPushButton("Сохранить заметку", self)
@@ -62,6 +72,9 @@ class NotesApp(QMainWindow):
         exit_button = QPushButton("Выйти", self)
         exit_button.clicked.connect(self.exit_app)
         layout.addWidget(exit_button)
+
+        self.setStyleSheet("QPushButton { background-color: #e7e7e7; border: none; border-radius: 3px; padding: 5px 10px; margin: 5px; } "
+                           "QPushButton:hover { background-color: #d7d7d7; }")
 
     def save_note(self):
         note = self.text_edit.toPlainText()

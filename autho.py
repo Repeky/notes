@@ -1,11 +1,16 @@
 import json
 from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLabel,
                              QLineEdit, QPushButton, QMessageBox, QDialog)
+from PyQt6.QtGui import QPixmap, QIcon
+from PyQt6.QtCore import QByteArray
 from cryptography.fernet import Fernet
 import os
+import base64
+import icon
 
 USERS_FILE = "users.json"
 KEY_FILE = "secret.key"
+
 
 
 def load_key():
@@ -57,9 +62,36 @@ class AuthWindow(QDialog):
         self.initUI()
 
     def initUI(self):
-        self.setWindowTitle("Авторизация")
-        self.setGeometry(300, 300, 200, 150)
+        self.setWindowTitle("Авторизация / Регистрация")
         layout = QVBoxLayout()
+
+        encoded_icon = icon.ico
+
+        pixmap = QPixmap()
+        pixmap.loadFromData(QByteArray.fromBase64(encoded_icon.encode()))
+
+        self.setWindowIcon(QIcon(pixmap))
+
+        self.setStyleSheet("""
+                    QDialog {
+                        background-color: #f0f0f0;
+                    }
+                    QLineEdit {
+                        border: 1px solid #ddd;
+                        border-radius: 5px;
+                        padding: 5px;
+                    }
+                    QPushButton {
+                        background-color: #e7e7e7;
+                        border: none;
+                        border-radius: 3px;
+                        padding: 5px 10px;
+                        margin: 5px;
+                    }
+                    QPushButton:hover {
+                        background-color: #d7d7d7;
+                    }
+                """)
 
         self.username_edit = QLineEdit(self)
         self.username_edit.setPlaceholderText("Имя пользователя")
